@@ -57,6 +57,7 @@ BLERemoteCharacteristic::BLERemoteCharacteristic(
  *@brief Destructor.
  */
 BLERemoteCharacteristic::~BLERemoteCharacteristic() {
+	if(m_rawData != nullptr) free(m_rawData);
 	removeDescriptors();   // Release resources for any descriptor information we may have allocated.
 } // ~BLERemoteCharacteristic
 
