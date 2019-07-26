@@ -57,8 +57,8 @@ BLERemoteCharacteristic::BLERemoteCharacteristic(
  *@brief Destructor.
  */
 BLERemoteCharacteristic::~BLERemoteCharacteristic() {
-	if(m_rawData != nullptr) free(m_rawData);
 	removeDescriptors();   // Release resources for any descriptor information we may have allocated.
+	if(m_rawData != nullptr) free(m_rawData);	
 } // ~BLERemoteCharacteristic
 
 
@@ -523,10 +523,10 @@ std::string BLERemoteCharacteristic::toString() {
  * @brief Write the new value for the characteristic.
  * @param [in] newValue The new value to write.
  * @param [in] response Do we expect a response?
- * @return N/A.
+ * @return false if not connected or cant perform write for some reason.
  */
-void BLERemoteCharacteristic::writeValue(std::string newValue, bool response) {
-	writeValue((uint8_t*)newValue.c_str(), strlen(newValue.c_str()), response);
+bool BLERemoteCharacteristic::writeValue(std::string newValue, bool response) {
+	return writeValue((uint8_t*)newValue.c_str(), strlen(newValue.c_str()), response);
 } // writeValue
 
 
@@ -536,10 +536,10 @@ void BLERemoteCharacteristic::writeValue(std::string newValue, bool response) {
  * This is a convenience function.  Many BLE characteristics are a single byte of data.
  * @param [in] newValue The new byte value to write.
  * @param [in] response Whether we require a response from the write.
- * @return N/A.
+ * @return false if not connected or cant perform write for some reason.
  */
-void BLERemoteCharacteristic::writeValue(uint8_t newValue, bool response) {
-	writeValue(&newValue, 1, response);
+bool BLERemoteCharacteristic::writeValue(uint8_t newValue, bool response) {
+	return writeValue(&newValue, 1, response);
 } // writeValue
 
 
@@ -548,15 +548,16 @@ void BLERemoteCharacteristic::writeValue(uint8_t newValue, bool response) {
  * @param [in] data A pointer to a data buffer.
  * @param [in] length The length of the data in the data buffer.
  * @param [in] response Whether we require a response from the write.
+ * @return false if not connected or cant perform write for some reason.
  */
-void BLERemoteCharacteristic::writeValue(uint8_t* data, size_t length, bool response) {
+bool BLERemoteCharacteristic::writeValue(uint8_t* data, size_t length, bool response) {
 	// writeValue(std::string((char*)data, length), response);
 	ESP_LOGD(LOG_TAG, ">> writeValue(), length: %d", length);
 
 	// Check to see that we are connected.
 	if (!getRemoteService()->getClient()->isConnected()) {
 		ESP_LOGE(LOG_TAG, "Disconnected");
-		throw BLEDisconnectedException();
+		return false;
 	}
 
 	m_semaphoreWriteCharEvt.take("writeValue");
@@ -573,12 +574,13 @@ void BLERemoteCharacteristic::writeValue(uint8_t* data, size_t length, bool resp
 
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_write_char: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		return;
+		return false;
 	}
 
 	m_semaphoreWriteCharEvt.wait("writeValue");
 
 	ESP_LOGD(LOG_TAG, "<< writeValue");
+	return true;
 } // writeValue
 
 /**
