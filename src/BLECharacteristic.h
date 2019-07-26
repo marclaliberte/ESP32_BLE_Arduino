@@ -105,7 +105,6 @@ private:
 	BLEService*                 m_pService;
 	BLEValue                    m_value;
 	esp_gatt_perm_t             m_permissions = ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE;
-	bool						m_writeEvt = false;
 
 	void handleGATTServerEvent(
 			esp_gatts_cb_event_t      event,
