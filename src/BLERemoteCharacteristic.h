@@ -46,14 +46,13 @@ public:
 	uint16_t    readUInt16();
 	uint32_t    readUInt32();
 	void        registerForNotify(notify_callback _callback, bool notifications = true);
-	void        writeValue(uint8_t* data, size_t length, bool response = false);
-	void        writeValue(std::string newValue, bool response = false);
-	void        writeValue(uint8_t newValue, bool response = false);
+	bool        writeValue(uint8_t* data, size_t length, bool response = false);
+	bool        writeValue(std::string newValue, bool response = false);
+	bool        writeValue(uint8_t newValue, bool response = false);
 	std::string toString();
 	uint8_t*	readRawData();
-
 	BLERemoteService* getRemoteService();
-	
+
 private:
 	BLERemoteCharacteristic(uint16_t handle, BLEUUID uuid, esp_gatt_char_prop_t charProp, BLERemoteService* pRemoteService);
 	friend class BLEClient;
@@ -75,8 +74,8 @@ private:
 	FreeRTOS::Semaphore  m_semaphoreRegForNotifyEvt  = FreeRTOS::Semaphore("RegForNotifyEvt");
 	FreeRTOS::Semaphore  m_semaphoreWriteCharEvt     = FreeRTOS::Semaphore("WriteCharEvt");
 	std::string          m_value;
-	uint8_t 			 *m_rawData;
-	notify_callback		 m_notifyCallback;
+	uint8_t 			 *m_rawData = nullptr;
+	notify_callback		 m_notifyCallback = nullptr;
 
 	// We maintain a map of descriptors owned by this characteristic keyed by a string representation of the UUID.
 	std::map<std::string, BLERemoteDescriptor*> m_descriptorMap;
